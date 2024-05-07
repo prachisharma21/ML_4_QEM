@@ -5,6 +5,8 @@ from qiskit.quantum_info.operators.symplectic import Pauli
 import numpy as np
 import pickle
 
+from collections import defaultdict
+
 class CircuitBuilder():
     def __init__(self,params,backend , initial_layout , geometry, nlayers =int):
         self.backend = backend
@@ -111,7 +113,7 @@ def QASM_Simulator(circuits,shots=1000):
     count_QASM =Aer.get_backend('qasm_simulator').run(circuits[0], shots=shots).result().get_counts()    
     return count_QASM
 
-def Noisy_backend_Simulato(circuits,backend = FakeQuitoV2(),shots=1000):
+def Noisy_backend_Simulator(circuits,backend = FakeQuitoV2(),shots=1000):
     count_Z = backend.run(circuits[0], shots=shots).result().get_counts()
     return count_Z
     
@@ -126,7 +128,8 @@ def create_all_single_q_observables(num_qubits = 5,all_pauli = ['X','Y','Z'], nu
             list_s.insert(i, pauli)
             paulis_str.append(''.join(list_s))
     return paulis_str
-print(create_all_single_q_observables())
+
+###print(create_all_single_q_observables())
 
 def pick_random_observable():
     # from a list of observables
@@ -137,12 +140,11 @@ def pick_random_observable():
 
 def find_measurement_basis(observable = "IIIIX"):
     basis = list(observable)
-    print(basis)
     for idx,str in enumerate(basis):
         if str!='I':
             indice = idx
             meas_gate = str
-    print(indice, meas_gate)
+    
     return indice, meas_gate
 
 
@@ -150,7 +152,6 @@ def expectation_value_single_qubit(count,active_qubit = int):
     count = {tuple(int(k) for k in key):count[key] for key in count.keys()}
     tot = 0
     shots =100000
-    print("active qubit", active_qubit)
     for key in count.keys():
             # for ZZ observable
             #num_ZZIII = (-1)**key[4] * (-1)**key[3]
@@ -165,8 +166,9 @@ def expectation_value_single_qubit(count,active_qubit = int):
     return expectation 
     
 def Vcircuit_w_random_params(backend =FakeQuitoV2(), n_layers = 1, num_params = 3, meas_basis= "Z" ,meas_qubit= int):
-    init_params =  np.random.uniform(-np.pi/3, np.pi/3, num_params*n_layers)
-    print(init_params)
+
+    init_params =  np.random.uniform(-np.pi, np.pi, num_params*n_layers)
+    ### print(init_params)
     Vcircuit= CircuitBuilder(params = init_params, backend= backend, initial_layout  = [i for i in range(5)]
                              , geometry="FakeQuitoV2",nlayers =n_layers)
     # Create circuit with no measurements for the state-vector calculations to find the ideal expectation value of the observable
@@ -180,40 +182,47 @@ def Vcircuit_w_random_params(backend =FakeQuitoV2(), n_layers = 1, num_params = 
 
 
 def data_preparation():
+
     # we are choosing Quito fake backend 
     Qbackend = FakeQuitoV2()
+
     # number of layers can be choosen randomly from 1 to 5
     num_layers = np.random.choice([i+1 for i in range(5)])
     ### print(num_layers)
-    # We have only 3 parameters in each layer because of the Mixed field Ising model chosen here. Therefore, it is hard coded
+
+    # We have only 3 parameters in each layer because of the Mixed field Ising model has 3 parameters. Therefore, it is hard coded
     num_params = 3
-    # shots of measurements 
+
+    # shots of measurements---reduce this number if it takes longer to run
     num_shots = 100000
 
     # pick a random observable to measure from a list of all single-qubit measurements
-    observable= pick_random_observable()
+    observable = pick_random_observable()
     ### print("observable= pick_random_observable()", observable)
+
     # Find the measurement gates and qubit to apply those on. 
     # the following function can be updated later for commuting measurements: For the time it is a simplest implementation
     meas_qubit, meas_gate = find_measurement_basis(observable= observable)
 
-    # create the Quantum circuit with some random parameters
+    # create the Quantum circuit with some random parameters 
     # parameters can be extracted from the Q. circuit object later 
     circ_w_no_meas, circ_w_meas = Vcircuit_w_random_params(backend = Qbackend,n_layers = num_layers, num_params = num_params, 
                                                            meas_basis= meas_gate,meas_qubit= meas_qubit)
+    
     # performing the Quantum simulations to find the ideal expectation value of the observables
     SV_count = State_Vector_Simulator(circuits=circ_w_no_meas)
     obs = Pauli(observable)
     ideal_expectation = SV_count.expectation_value(obs)
     ### print(ideal_expectation)
+
     # performing the Quantum simulations to find the noisy expectation value of the observables
-    Noisy_count = Noisy_backend_Simulato(circuits=circ_w_meas, backend=Qbackend , shots = num_shots)
+    Noisy_count = Noisy_backend_Simulator(circuits=circ_w_meas, backend=Qbackend , shots = num_shots)
     noisy_expectation = expectation_value_single_qubit(count = Noisy_count,active_qubit = meas_qubit)
     ### print(noisy_expectation)
+
     return [circ_w_meas, num_layers, observable, ideal_expectation, noisy_expectation]
 
 
-from collections import defaultdict
 
 def data_storage(num_circuits_for_ML = 1000):
     # TASK-1
@@ -237,15 +246,16 @@ def data_loader(file_name = str):
     return file
 
 def main():
-    num_circuits_for_ML = 2
+    num_circuits_for_ML = 2 # change it to 1000, i.e., circuits for data set. 
     data_storage(num_circuits_for_ML = num_circuits_for_ML)
     loaded_data = data_loader("circ_0.pickle")
     print(loaded_data["Quantum_circuit"][0].__dict__["_data"])
-    # from this loaded dictionary object with key Quantum_circuit, one can extract the all the other features
+    # from this loaded dictionary object with key Quantum_circuit, one can extract all the other features
     # the rest of the keys are also features for the model
     # TASK 2  
-    # you can write a small function to load each pickle data and extract the extra features and create a dataframe with all features included.  
-
+    # Write a function to load each pickle data file and extract the extra features, i.e., count of 2 qubit gates pairs gates as you did in last excercise
+    # and create a dataframe with all features included.  
+    # One can also use circuits[0].count_ops() to add total gates of each type as features.  
 
 
 if __name__ == '__main__':
