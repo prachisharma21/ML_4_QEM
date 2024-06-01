@@ -1,6 +1,9 @@
 import pickle
 import pandas as pd
 import re
+from sklearn.model_selection import KFold
+from sklearn.metrics import mean_squared_error
+import numpy as np
 
 def count_gate_paris(df, gates:str):
     l = df[gates]
@@ -76,3 +79,19 @@ def extract_all(num_files=1000):
     for i in range(num_files):
         a.append(extract_features(f"./../pickles/circ_{i}.pickle"))
     return pd.DataFrame(a)
+
+def KF(n_folds = 5, model = None, X = None, y = None):
+    kf = KFold(n_splits=n_folds,shuffle=True)
+    mse = []
+    for i, (train, test) in enumerate(kf.split(X=X)):
+        #print('Fold: ' + str(i))
+        Xtrain = pd.DataFrame()
+        Xtest = pd.DataFrame()
+        for key in X.keys():
+            Xtrain[key] = X[key][train]
+            Xtest[key] = X[key][test]
+        ytrain = y.to_numpy()[train]
+        ytest = y.to_numpy()[test]
+        model = model.fit(Xtrain, ytrain)
+        mse.append(mean_squared_error(ytest, model.predict(Xtest)))
+    return np.mean(mse)
