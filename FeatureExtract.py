@@ -80,6 +80,12 @@ def extract_all(num_files=1000):
         a.append(extract_features(f"./../pickles/circ_{i}.pickle"))
     return pd.DataFrame(a)
 
+def extract_all_extrapolation(num_files=400):
+    a = list()
+    for i in range(num_files):
+        a.append(extract_features(f"./../extrapolation/circ_{i}.pickle"))
+    return pd.DataFrame(a)
+
 def KF(n_folds = 5, model = None, X = None, y = None):
     kf = KFold(n_splits=n_folds,shuffle=True)
     mse = []
