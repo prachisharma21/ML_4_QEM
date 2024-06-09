@@ -1,6 +1,12 @@
 # Essential imports for the calculations
-from qiskit import QuantumCircuit, Aer, transpile
-from qiskit.providers.fake_provider import FakeQuitoV2
+# original imports -> changed such that new environment runs
+# from qiskit import QuantumCircuit, Aer, transpile
+# from qiskit.providers.fake_provider import FakeQuitoV2
+
+from qiskit import QuantumCircuit, transpile
+from qiskit_aer import Aer
+from qiskit_ibm_runtime.fake_provider import FakeQuitoV2
+
 from qiskit.quantum_info.operators.symplectic import Pauli
 import numpy as np
 import pickle
@@ -246,7 +252,7 @@ def data_loader(file_name = str):
     return file
 
 def main():
-    num_circuits_for_ML = 2 # change it to 1000, i.e., circuits for data set. 
+    num_circuits_for_ML = 10 # change it to 1000, i.e., circuits for data set. 
     data_storage(num_circuits_for_ML = num_circuits_for_ML)
     loaded_data = data_loader("circ_0.pickle")
     print(loaded_data["Quantum_circuit"][0].__dict__["_data"])

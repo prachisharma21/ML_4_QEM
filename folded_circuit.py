@@ -1,7 +1,7 @@
-from  random_VQE_data_prep import *
+from random_VQE_data_prep import *
 from mitiq import zne
 
-circ0 = data_loader(file_name="circ_0.pickle")
+circ0 = data_loader(file_name="./pickles/circ_0.pickle")
 scaled_circuit = zne.scaling.fold_gates_at_random(circ0["Quantum_circuit"][0], 
                                                   scale_factor=1.5,
                                                   fidelities={"single": 1.0, "CNOT": 0.99} )
