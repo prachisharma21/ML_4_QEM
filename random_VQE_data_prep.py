@@ -5,7 +5,7 @@
 
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import Aer
-from qiskit_ibm_runtime.fake_provider import FakeQuitoV2
+from qiskit.providers.fake_provider import FakeQuitoV2
 
 from qiskit.quantum_info.operators.symplectic import Pauli
 import numpy as np
