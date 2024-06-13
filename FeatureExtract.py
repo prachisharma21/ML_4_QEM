@@ -23,6 +23,7 @@ def extract_features(path):
     #print(len(dict["Quantum_circuit"]))
     data = dict_["Quantum_circuit"][0].data
     #print(dict["Quantum_circuit"][0].draw())
+    circuit = dict_["Quantum_circuit"][0]
     
 
     qubits = str(data)
@@ -64,12 +65,35 @@ def extract_features(path):
     res = dict()
     res['noisy_expectation'] = dict_['noisy_expectation']
     res['num_layers'] = dict_['num_layers']
-    #res['observable'] = dict_['obervable']
-    # tmp = count_gate_paris(df_new, 'gates')
-    # for i in tmp.keys():
-    #     res['count_' + i] = tmp[i]
-    res['N2QG'] = len(df_new)
-    res['observable'] = dict_['obervable']
+
+    res['tot_num_gates'] = circuit.size()
+    gates = circuit.count_ops()
+    res['num_cx_gates'] = gates['cx']
+    res['num_sx_gates'] = gates['sx']
+    res['num_2_qubit_gates'] = len(df_new)
+
+    
+
+    # encoded obervable as binary number for locations where measured
+    input_string = dict_['obervable']
+    encoded_string = ''.join(['0' if char == 'I' else '1' for char in input_string])
+
+    # le = LabelEncoder()
+    # obs = ran_VQE.create_all_single_q_observables()
+    # encoded = le.fit_transform(obs)
+    # for index, item in enumerate(obs):
+    #     if item == input_string:
+    #         res['observable'] = encoded[index]
+
+    res['obs_dummy_1'] = int(not dict_['obervable'][0]=="I")
+    res['obs_dummy_2'] = int(not dict_['obervable'][1]=="I")
+    res['obs_dummy_3'] = int(not dict_['obervable'][2]=="I")
+    res['obs_dummy_4'] = int(not dict_['obervable'][3]=="I")
+    res['obs_dummy_5'] = int(not dict_['obervable'][4]=="I")
+    
+    tmp = count_gate_paris(df_new, 'gates')
+    for i in tmp.keys():
+        res['count_' + i] = tmp[i]
     res['target'] = dict_['ideal_expectation']
 
     return res
