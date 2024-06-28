@@ -191,6 +191,18 @@ def extract_all(num_files=1000):
         a.append(extract_features(f"./pickles/circ_{i}.pickle"))
     return pd.DataFrame(a)
 
+def extract_all_FakeVigo(num_files=1000):
+    a = list()
+    for i in range(num_files):
+        a.append(extract_features(f"./pickles_FakeVigo/circ_{i}.pickle"))
+    return pd.DataFrame(a)
+
+def extract_all_FakeLima(num_files=1000):
+    a = list()
+    for i in range(num_files):
+        a.append(extract_features(f"./pickles_FakeLima/circ_{i}.pickle"))
+    return pd.DataFrame(a)
+
 def extract_all_extrapolation(num_files=500):
     a = list()
     for i in range(num_files):
